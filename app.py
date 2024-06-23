@@ -25,18 +25,18 @@ def verificaMudancaDeFaixa(infoLines, averagedLines):
         faixaEsquerda, faixaDireita = averagedLines
         x1Esquerda,_,_,_ = faixaEsquerda
         x1Direita,_,_,_ = faixaDireita
-        if x1Esquerda < 40 or x1Esquerda > 560:
-            print(f"X1 esquerda: {x1Esquerda}")
+        if (x1Esquerda < 40 or x1Esquerda > 560) and (x1Direita < 1480 or x1Direita > 1920):
+            #print(f"X1 esquerda: {x1Esquerda} , X1 direita: {x1Direita}") #Debug
             return True
     elif infoLines == "left":
         x1Esquerda,_,_,_ = averagedLines[0]
         if x1Esquerda < 40 or x1Esquerda > 560:
-            print(f"X1 esquerda: {x1Esquerda}")
+            #print(f"X1 esquerda: {x1Esquerda}") #Debug
             return True
     elif infoLines == "right":
         x1Direita,_,_,_ = averagedLines[0]
-        if x1Direita > 1920 or x1Direita < 1480:
-            print(f"X1 esquerda: {x1Direita}")
+        if x1Direita < 1480 or x1Direita > 1920:
+            #print(f"X1 esquerda: {x1Direita}") #Debug
             return True
 
     return False
