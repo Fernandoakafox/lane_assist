@@ -3,48 +3,48 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-def lineDashBoardColor(lane_image, info_lines):
-    if info_lines == "left and right":
-        cv2.line(lane_image, pt1=(100,80), pt2=(100,160), color=(0,255,0), thickness=10)
-        cv2.line(lane_image, pt1=(120,80), pt2=(120,160), color=(0,255,0), thickness=10)
+def lineDashBoardColor(laneImage, infoLines):
+    if infoLines == "left and right":
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,0), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,0), thickness=10)
             
-    elif info_lines == "left":
+    elif infoLines == "left":
         #desenhar uma reta na imagem
-        cv2.line(lane_image, pt1=(100,80), pt2=(100,160), color=(0,255,0), thickness=10)
-        cv2.line(lane_image, pt1=(120,80), pt2=(120,160), color=(0,255,255), thickness=10)
-    elif info_lines == "right":
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,0), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,255), thickness=10)
+    elif infoLines == "right":
         #desenhar uma reta na imagem
-        cv2.line(lane_image, pt1=(100,80), pt2=(100,160), color=(0,255,255), thickness=10)
-        cv2.line(lane_image, pt1=(120,80), pt2=(120,160), color=(0,255,0), thickness=10)
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,255), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,0), thickness=10)
     else:
-        cv2.line(lane_image, pt1=(100,80), pt2=(100,160), color=(0,255,255), thickness=10)
-        cv2.line(lane_image, pt1=(120,80), pt2=(120,160), color=(0,255,255), thickness=10)
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,255), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,255), thickness=10)
 
-def verifica_mudanca_de_faixa(info_lines, averaged_lines):
-    if info_lines == "left and right":
-        faixaEsquerda, faixaDireita = averaged_lines
+def verificaMudancaDeFaixa(infoLines, averagedLines):
+    if infoLines == "left and right":
+        faixaEsquerda, faixaDireita = averagedLines
         x1Esquerda,_,_,_ = faixaEsquerda
         x1Direita,_,_,_ = faixaDireita
         if x1Esquerda > 0 and x1Esquerda < 30 or x1Esquerda > 470:
             return True
-    elif info_lines == "left":
-        x1Esquerda,_,_,_ = averaged_lines[0]
+    elif infoLines == "left":
+        x1Esquerda,_,_,_ = averagedLines[0]
         if x1Esquerda > 0 and x1Esquerda < 100 or x1Esquerda > 470:
             return True
-    elif info_lines == "right":
-        x1Direita,_,_,_ = averaged_lines[0]
+    elif infoLines == "right":
+        x1Direita,_,_,_ = averagedLines[0]
         if x1Direita > 1920 or x1Direita < 1480:
             return True
 
     return False
 
-def get_video_cartezian_dimension(imagem):
+def getVideoCartezianDimension(imagem):
     """Recebe um frame, no formato ndimensional array. Printa a imagem em um plano cartesiano"""
     plt.imshow(imagem)
     plt.show()
 
-def make_coordinates(image, line_parameters):
-    slope, intercept = line_parameters
+def makeCoordinates(image, lineParameters):
+    slope, intercept = lineParameters
     #pegando a base da imagem
     y1 = image.shape[0]
     #pegando o "meio" da imagem
@@ -53,16 +53,16 @@ def make_coordinates(image, line_parameters):
     x2 = int((y2 - intercept)/slope)
     return np.array([x1,y1,x2,y2])
 
-def average_slope_intercept(image, lines):
+def averageSlopeIntercept(image, lines):
     """Retorna uma tupla, onde o primeiro elemento é uma string e o segundo elemento é um np array
     
     A string contem a informação do np array, avisando se o np array retornado contém as duas faixas, somente a da esquerda, somente a da direita ou nenhuma.
 
     """
     # linha da esquerda
-    left_fit = []
+    leftFit = []
     # linha da direita
-    right_fit = []
+    rightFit = []
     for line in lines:
         x1,y1,x2,y2 = line.reshape(4)
         parameters = np.polyfit((x1,x2),(y1,y2), 1)
@@ -70,43 +70,43 @@ def average_slope_intercept(image, lines):
         intercept = parameters[1]
         # se o coeficiente angular da reta/linha for negativo, então é uma linha da esquerda (lembre-se que neste plano carteziano o eixo y tem seu valor minimo no extremo e seu valor maximo proximo a onde o eixo x tem valor 0)
         if slope < 0:
-            left_fit.append((slope, intercept))
+            leftFit.append((slope, intercept))
         else:
-            right_fit.append((slope, intercept))
+            rightFit.append((slope, intercept))
 
 
-    left_line = None
-    right_line = None
+    leftLine = None
+    rightLine = None
 
     #se existir coordenadas para a linha esquerda
-    if left_fit:
-        left_fit_average = np.average(left_fit, axis = 0)
-        left_line = make_coordinates(image, left_fit_average)
+    if leftFit:
+        leftFitAverage = np.average(leftFit, axis = 0)
+        leftLine = makeCoordinates(image, leftFitAverage)
 
     #se existir coordenadas para a linha direita
-    if right_fit:
-        right_fit_average = np.average(right_fit, axis = 0)
-        right_line = make_coordinates(image, right_fit_average)
+    if rightFit:
+        rightFitAverage = np.average(rightFit, axis = 0)
+        rightLine = makeCoordinates(image, rightFitAverage)
     
     #retorna as coordenadas das linhas, se elas existirem, do contrario, retorna coordenadas nulas.
-    if left_line is not None and right_line is not None:
-        return ("left and right",np.array([left_line, right_line]))
-    elif left_line is not None:
-        return ("left", np.array([left_line]))
-    elif right_line is not None:
-        return ("right", np.array([right_line]))
+    if leftLine is not None and rightLine is not None:
+        return ("left and right",np.array([leftLine, rightLine]))
+    elif leftLine is not None:
+        return ("left", np.array([leftLine]))
+    elif rightLine is not None:
+        return ("right", np.array([rightLine]))
     else:
         return ("nothing",np.array([]))
 
 def canny(image):
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     blur = cv2.GaussianBlur(gray, (5,5), 0)
-    low_threshold = 50
-    high_threshold = 150
-    canny = cv2.Canny(blur, low_threshold, high_threshold)
+    lowThreshold = 50
+    highThreshold = 150
+    canny = cv2.Canny(blur, lowThreshold, highThreshold)
     return canny
 
-def display_lines(image, lines):
+def displayLines(image, lines):
     # uma imagem preta, pois é uma matriz de zeros, da mesma resolução que a imagem
     line_image = np.zeros_like(image)
     #verificamos se a matriz de linhas possui alguma linha
@@ -124,7 +124,7 @@ def plotCannyGraphic(canny):
     plt.imshow(canny)
     plt.show()
 
-def region_of_interest(image):
+def regionOfInterest(image):
     alturaDaImagem = image.shape[0] #o parametro 0 do metodo shape, retorna o numero de linhas.
     verticeBaseEsquerda = (0,alturaDaImagem) #antes era 178
     verticeBaseDireita = (1920,alturaDaImagem)
@@ -157,48 +157,48 @@ def main():
         if ret is False:
             break
 
-        lane_image = np.copy(image)
-        canny_image = canny(lane_image)
-        cropped_image = region_of_interest(canny_image)
+        laneImage = np.copy(image)
+        cannyImage = canny(laneImage)
+        croppedImage = regionOfInterest(cannyImage)
 
         #detectando linhas
-        lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180, 100, np.array([]),minLineLength=40, 
+        lines = cv2.HoughLinesP(croppedImage, 2, np.pi/180, 100, np.array([]),minLineLength=40, 
         maxLineGap = 5) #maxLineGap representa o espaço entre linhas que posso considerar como se fosse linha.
 
         #se linhas foram identificadas
         if lines is not None:
             linhaIdentificada += 1
 
-            info_lines, averaged_lines = average_slope_intercept(lane_image, lines)
-            if verifica_mudanca_de_faixa(info_lines, averaged_lines):
+            infoLines, averagedLines = averageSlopeIntercept(laneImage, lines)
+            if verificaMudancaDeFaixa(infoLines, averagedLines):
                 # escrevendo texto na imagem
-                cv2.putText(lane_image, "Mudanca de faixa", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)
+                cv2.putText(laneImage, "Mudanca de faixa", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)
                 print("mudanca de faixa-----------")
                 
             else:
-                cv2.putText(lane_image, "Dentro das linhas", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)
+                cv2.putText(laneImage, "Dentro das linhas", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)
 
             # pinta linhas no dashboard (canto superior esquerdo)
-            lineDashBoardColor(lane_image, info_lines)
+            lineDashBoardColor(laneImage, infoLines)
             
 
-            if averaged_lines is not None and len(averaged_lines) > 0:
-                line_image = display_lines(lane_image, averaged_lines)
+            if averagedLines is not None and len(averagedLines) > 0:
+                lineImage = displayLines(laneImage, averagedLines)
                 #Vamos combinar a imagem que mostra as linhas com a imagem real. Para isso, somamos a imagem real com a imagem preta que possui linhas azuis, deste modo os pixels pretos, que valem zero, não irão modificar a imagem, porém, os pixels azuis, que valem 255, irão modificar a imagem.
-                combo_image = cv2.addWeighted(lane_image, 1, line_image, 1, 1)
+                comboImage = cv2.addWeighted(laneImage, 1, lineImage, 1, 1)
             else:
-                combo_image = lane_image
+                comboImage = laneImage
 
         #se linhas não foram identificadas
         else:
-            cv2.putText(lane_image, "Indefinido", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,165,255), 2)
+            cv2.putText(laneImage, "Indefinido", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,165,255), 2)
             #pinta linhas no dashboard
-            lineDashBoardColor(lane_image, info_lines)
-            combo_image = lane_image
+            lineDashBoardColor(laneImage, infoLines)
+            comboImage = laneImage
             linhaNaoIdentificada += 1
             
 
-        cv2.imshow("Saida", combo_image)
+        cv2.imshow("Saida", comboImage)
         #interrompe loop se a tecla esc for pressionada
         if cv2.waitKey(40) == 27:
             break
