@@ -25,15 +25,18 @@ def verificaMudancaDeFaixa(infoLines, averagedLines):
         faixaEsquerda, faixaDireita = averagedLines
         x1Esquerda,_,_,_ = faixaEsquerda
         x1Direita,_,_,_ = faixaDireita
-        if x1Esquerda > 0 and x1Esquerda < 30 or x1Esquerda > 470:
+        if x1Esquerda < 40 or x1Esquerda > 560:
+            print(f"X1 esquerda: {x1Esquerda}")
             return True
     elif infoLines == "left":
         x1Esquerda,_,_,_ = averagedLines[0]
-        if x1Esquerda > 0 and x1Esquerda < 100 or x1Esquerda > 470:
+        if x1Esquerda < 40 or x1Esquerda > 560:
+            print(f"X1 esquerda: {x1Esquerda}")
             return True
     elif infoLines == "right":
         x1Direita,_,_,_ = averagedLines[0]
         if x1Direita > 1920 or x1Direita < 1480:
+            print(f"X1 esquerda: {x1Direita}")
             return True
 
     return False
@@ -173,7 +176,6 @@ def main():
             if verificaMudancaDeFaixa(infoLines, averagedLines):
                 # escrevendo texto na imagem
                 cv2.putText(laneImage, "Mudanca de faixa", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)
-                print("mudanca de faixa-----------")
                 
             else:
                 cv2.putText(laneImage, "Dentro das linhas", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)
