@@ -17,14 +17,14 @@ def lineDashBoardColor(laneImage, infoLines):
     elif infoLines == "left":
         #desenhar uma reta na imagem
         cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,0), thickness=10)
-        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,255), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(128,128,128), thickness=10)
     elif infoLines == "right":
         #desenhar uma reta na imagem
-        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,255), thickness=10)
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(128,128,128), thickness=10)
         cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,0), thickness=10)
     else:
-        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,255), thickness=10)
-        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,255), thickness=10)
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(128,128,128), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(128,128,128), thickness=10)
 
 def verificaMudancaDeFaixa(infoLines, averagedLines):
     if infoLines == "left and right":
@@ -44,7 +44,6 @@ def verificaMudancaDeFaixa(infoLines, averagedLines):
         if x1Direita < 1480 or x1Direita > 1920:
             #print(f"X1 esquerda: {x1Direita}") #Debug
             return True
-
     return False
 
 def getVideoCartezianDimension(imagem):
@@ -220,11 +219,14 @@ def main():
             linhaIdentificada += 1
 
             infoLines, averagedLines = averageSlopeIntercept(baseImage, lines)
-            if verificaMudancaDeFaixa(infoLines, averagedLines):
-                # escrevendo texto na imagem
-                cv2.putText(baseImage, "Mudanca de faixa", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)    
+            if infoLines is not "nothing":
+                if verificaMudancaDeFaixa(infoLines, averagedLines):
+                    # escrevendo texto na imagem
+                    cv2.putText(baseImage, "Mudanca de faixa", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)    
+                else:
+                    cv2.putText(baseImage, "Dentro das faixas", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)
             else:
-                cv2.putText(baseImage, "Dentro das linhas", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)
+                cv2.putText(baseImage, "Indefinido", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,165,255), 2)
 
             # pinta linhas no dashboard (canto superior esquerdo)
             lineDashBoardColor(baseImage, infoLines)
