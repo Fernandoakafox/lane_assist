@@ -195,7 +195,7 @@ def regionOfInterest(image):
     return masked_image
 
 def main():
-    videoPath = "./videos/asfalto_imply.mp4"
+    videoPath = "./videos/acessoGrasel.mp4"
     capture = cv2.VideoCapture(videoPath)
     linhaIdentificada = 0
     linhaNaoIdentificada = 0
