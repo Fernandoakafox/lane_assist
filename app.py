@@ -3,28 +3,100 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+#--------------------------Manipulação da imagem-------------------------------#
+
 # Função para redimensionar uma imagem mantendo a proporção
-def redimensionar_imagem(img, largura_desejada):
+def redimensionarImagem(img, largura_desejada):
     proporcao = largura_desejada / img.shape[1]
     altura_desejada = int(img.shape[0] * proporcao)
     return cv2.resize(img, (largura_desejada, altura_desejada))
 
-def lineDashBoardColor(laneImage, infoLines):
-    if infoLines == "left and right":
-        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,0), thickness=10)
-        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,0), thickness=10)
-            
-    elif infoLines == "left":
-        #desenhar uma reta na imagem
-        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,0), thickness=10)
-        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(128,128,128), thickness=10)
-    elif infoLines == "right":
-        #desenhar uma reta na imagem
-        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(128,128,128), thickness=10)
-        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,0), thickness=10)
-    else:
-        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(128,128,128), thickness=10)
-        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(128,128,128), thickness=10)
+def getVideoCartezianDimension(imagem):
+    """Recebe um frame, no formato ndimensional array. Printa a imagem em um plano cartesiano"""
+    plt.imshow(imagem)
+    plt.show()
+
+def cannySatura(image):
+    rgb2hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
+    rgb2hls[:, :, 2] = 255
+    hls2rgb = cv2.cvtColor(rgb2hls, cv2.COLOR_HLS2RGB)
+    gray = cv2.cvtColor(hls2rgb, cv2.COLOR_RGB2GRAY)
+    blur = cv2.GaussianBlur(gray, (5,5), 0) #reduzir ruido
+    minThreshold = 50 #todo brilho abaixo do minThreshold será desconsiderado como borda
+    maxThreshold = 150 #todo brilho acima do maxThreshold será concerteza considerado como borda
+    #o que acontece entre os valores minThreshold e maxThreshold é mais complicado 
+    canny = cv2.Canny(blur, minThreshold, maxThreshold)
+    kernel = np.zeros((3,3), np.uint8)
+    erode = cv2.erode(canny, kernel, iterations=1)
+    return erode
+
+def canny(image):
+    h,l,s = cv2.split(cv2.cvtColor(image,cv2.COLOR_BGR2HLS))
+    cannyImage = cv2.Canny(l,100, 150)
+    return cannyImage
+
+def plotCannyGraphic(canny):
+    """Sempre que quiser desenhar o tringulo, é necessario abrir a imagem com o matplotlib para ver as coordenadas dos pontos do triangulo na imagem."""
+    plt.imshow(canny)
+    plt.show()
+
+def regionOfInterest(image):
+    alturaDaImagem = image.shape[0] #o parametro 0 do metodo shape, retorna o numero de linhas.
+    verticeBaseEsquerda = (570,alturaDaImagem-200) #antes era 178
+    verticeBaseDireita = (1350,alturaDaImagem-200)
+    verticeTopoEsquerda = (770,750)
+    verticeTopoDireita = (1150,750)
+
+    #definição dos vertices do trapezio. É uma lista porque fillPoly só aceita listas de poligonos.
+    vertices = np.array([
+        [verticeBaseEsquerda , verticeBaseDireita , verticeTopoDireita ,verticeTopoEsquerda ]
+         ])
+
+    mask = np.zeros_like(image) #criamos um array ndimensional de mesmas proporções que o array image, contendo somente pixels pretos
+
+    cv2.fillPoly(mask, vertices, 255) # estamos aplicando o triangulo na mascara, de modo que o triangulo fique completamente branco.
+
+    masked_image = cv2.bitwise_and(image, mask)
+
+    return masked_image
+
+#--------------------------------------Line--------------------------------------#
+
+def displayLines(image, lines):
+    # uma imagem preta, pois é uma matriz de zeros, da mesma resolução que a imagem
+    line_image = np.zeros_like(image)
+    #verificamos se a matriz de linhas possui alguma linha
+    if lines is not None and len(lines) > 0:
+        for line in lines:
+            # se a linha não é nula e possui as quatro coordenadas necessarias para traçar uma reta
+            if line is not None and len(line) == 4:
+                x1,y1,x2,y2 = line
+                try:
+                    #desenhando linhas sobre a imagem preta. As linhas utilizam 2 pontos para serem desenhadas
+                    cv2.line(line_image,(x1,y1),(x2,y2), (0,0,255), thickness=10)
+                except:
+                    print("Gabriel")
+    return line_image
+
+def displayAllLines(image, lines):
+    # uma imagem preta, pois é uma matriz de zeros, da mesma resolução que a imagem
+    line_image = np.zeros_like(image)
+    #verificamos se a matriz de linhas possui alguma linha
+    if lines is not None and len(lines) > 0:
+        for line in lines:
+            allLines = line[0]
+            # se a linha não é nula e possui as quatro coordenadas necessarias para traçar uma reta
+            if line is not None and len(allLines) == 4:
+                x1,y1,x2,y2 = allLines
+                parameters = np.polyfit((x1,x2),(y1,y2), 1)
+                slope = parameters[0]
+                if abs(slope) > 0.4: #ignora linhas com coeficiente angular no intervalo ]0.5, -0.5[
+                    try:
+                        #desenhando linhas sobre a imagem preta. As linhas utilizam 2 pontos para serem desenhadas
+                        cv2.line(line_image,(x1,y1),(x2,y2), (0,0,255), thickness=10)
+                    except:
+                        print("Gabriel")
+    return line_image
 
 def verificaMudancaDeFaixa(infoLines, averagedLines):
     if infoLines == "left and right":
@@ -45,11 +117,6 @@ def verificaMudancaDeFaixa(infoLines, averagedLines):
             #print(f"X1 esquerda: {x1Direita}") #Debug
             return True
     return False
-
-def getVideoCartezianDimension(imagem):
-    """Recebe um frame, no formato ndimensional array. Printa a imagem em um plano cartesiano"""
-    plt.imshow(imagem)
-    plt.show()
 
 def makeCoordinates(image, lineParameters):
     slope, intercept = lineParameters
@@ -113,86 +180,26 @@ def averageSlopeIntercept(image, lines):
     else:
         return ("nothing",np.array([]))
 
-def cannySatura(image):
-    rgb2hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
-    rgb2hls[:, :, 2] = 255
-    hls2rgb = cv2.cvtColor(rgb2hls, cv2.COLOR_HLS2RGB)
-    gray = cv2.cvtColor(hls2rgb, cv2.COLOR_RGB2GRAY)
-    blur = cv2.GaussianBlur(gray, (5,5), 0) #reduzir ruido
-    minThreshold = 50 #todo brilho abaixo do minThreshold será desconsiderado como borda
-    maxThreshold = 150 #todo brilho acima do maxThreshold será concerteza considerado como borda
-    #o que acontece entre os valores minThreshold e maxThreshold é mais complicado 
-    canny = cv2.Canny(blur, minThreshold, maxThreshold)
-    kernel = np.zeros((3,3), np.uint8)
-    erode = cv2.erode(canny, kernel, iterations=1)
-    return erode
+#------------------------------------Dashboard-----------------------------------#
 
-def canny(image):
-    h,l,s = cv2.split(cv2.cvtColor(image,cv2.COLOR_BGR2HLS))
-    cannyImage = cv2.Canny(l,100, 150)
-    return cannyImage
+def lineDashBoardColor(laneImage, infoLines):
+    if infoLines == "left and right":
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,0), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,0), thickness=10)
+            
+    elif infoLines == "left":
+        #desenhar uma reta na imagem
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(0,255,0), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(128,128,128), thickness=10)
+    elif infoLines == "right":
+        #desenhar uma reta na imagem
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(128,128,128), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(0,255,0), thickness=10)
+    else:
+        cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(128,128,128), thickness=10)
+        cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(128,128,128), thickness=10)
 
-def displayLines(image, lines):
-    # uma imagem preta, pois é uma matriz de zeros, da mesma resolução que a imagem
-    line_image = np.zeros_like(image)
-    #verificamos se a matriz de linhas possui alguma linha
-    if lines is not None and len(lines) > 0:
-        for line in lines:
-            # se a linha não é nula e possui as quatro coordenadas necessarias para traçar uma reta
-            if line is not None and len(line) == 4:
-                x1,y1,x2,y2 = line
-                try:
-                    #desenhando linhas sobre a imagem preta. As linhas utilizam 2 pontos para serem desenhadas
-                    cv2.line(line_image,(x1,y1),(x2,y2), (0,0,255), thickness=10)
-                except:
-                    print("Gabriel")
-    return line_image
-
-def displayAllLines(image, lines):
-    # uma imagem preta, pois é uma matriz de zeros, da mesma resolução que a imagem
-    line_image = np.zeros_like(image)
-    #verificamos se a matriz de linhas possui alguma linha
-    if lines is not None and len(lines) > 0:
-        for line in lines:
-            allLines = line[0]
-            # se a linha não é nula e possui as quatro coordenadas necessarias para traçar uma reta
-            if line is not None and len(allLines) == 4:
-                x1,y1,x2,y2 = allLines
-                parameters = np.polyfit((x1,x2),(y1,y2), 1)
-                slope = parameters[0]
-                if abs(slope) > 0.4: #ignora linhas com coeficiente angular no intervalo ]0.5, -0.5[
-                    try:
-                        #desenhando linhas sobre a imagem preta. As linhas utilizam 2 pontos para serem desenhadas
-                        cv2.line(line_image,(x1,y1),(x2,y2), (0,0,255), thickness=10)
-                    except:
-                        print("Gabriel")
-    return line_image
-
-def plotCannyGraphic(canny):
-    """Sempre que quiser desenhar o tringulo, é necessario abrir a imagem com o matplotlib para ver as coordenadas dos pontos do triangulo na imagem."""
-    plt.imshow(canny)
-    plt.show()
-
-def regionOfInterest(image):
-    alturaDaImagem = image.shape[0] #o parametro 0 do metodo shape, retorna o numero de linhas.
-    verticeBaseEsquerda = (570,alturaDaImagem-200) #antes era 178
-    verticeBaseDireita = (1350,alturaDaImagem-200)
-    verticeTopoEsquerda = (770,750)
-    verticeTopoDireita = (1150,750)
-
-    #definição dos vertices do trapezio. É uma lista porque fillPoly só aceita listas de poligonos.
-    vertices = np.array([
-        [verticeBaseEsquerda , verticeBaseDireita , verticeTopoDireita ,verticeTopoEsquerda ]
-         ])
-
-    mask = np.zeros_like(image) #criamos um array ndimensional de mesmas proporções que o array image, contendo somente pixels pretos
-
-    cv2.fillPoly(mask, vertices, 255) # estamos aplicando o triangulo na mascara, de modo que o triangulo fique completamente branco.
-
-    masked_image = cv2.bitwise_and(image, mask)
-
-    return masked_image
-
+        
 def main():
     videoPath = "./videos/acessoGrasel.mp4"
     capture = cv2.VideoCapture(videoPath)
@@ -248,12 +255,12 @@ def main():
             linhaNaoIdentificada += 1
             
         # Definir a largura desejada para a exibição
-        largura_janela = 1200
+        largura_janela = 1400
        
         #prints das diferentes imagens
-        #cv2.imshow("Normal", laneImage)
-        #cv2.imshow("Cropped RGB", redimensionar_imagem(regionOfInterest(laneImage), 1200))
-        cv2.imshow("comboImage", redimensionar_imagem(comboImage, largura_janela))
+        #cv2.imshow("Normal", baseImage)
+        cv2.imshow("Cropped RGB", redimensionarImagem(regionOfInterest(baseImage), 1200))
+        cv2.imshow("comboImage", redimensionarImagem(comboImage, largura_janela))
         #cv2.imshow("croppedImage", redimensionar_imagem(croppedImage, largura_janela))
         #cv2.imshow("grayImage", redimensionar_imagem(cv2.cvtColor(image, cv2.COLOR_RGB2GRAY), largura_janela))
 
