@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 import time
 
 #--------------------------Manipulação da imagem-------------------------------#
-
-# Função para redimensionar uma imagem mantendo a proporção
 def redimensionarImagem(img, largura_desejada):
+    """Função para redimensionar uma imagem mantendo a proporção"""
     proporcao = largura_desejada / img.shape[1]
     altura_desejada = int(img.shape[0] * proporcao)
     return cv2.resize(img, (largura_desejada, altura_desejada))
@@ -199,7 +198,6 @@ def lineDashBoardColor(laneImage, infoLines):
         cv2.line(laneImage, pt1=(100,80), pt2=(100,160), color=(128,128,128), thickness=10)
         cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(128,128,128), thickness=10)
 
-        
 def main():
     videoPath = "./videos/acessoGrasel.mp4"
     capture = cv2.VideoCapture(videoPath)
@@ -239,7 +237,6 @@ def main():
             lineDashBoardColor(baseImage, infoLines)
 
             if averagedLines is not None and len(averagedLines) > 0:
-                #lineImage = displayLines(laneImage, averagedLines)
                 lineImage = displayLines(baseImage, averagedLines)
                 #Vamos combinar a imagem que mostra as linhas com a imagem real. Para isso, somamos a imagem real com a imagem preta que possui linhas azuis, deste modo os pixels pretos, que valem zero, não irão modificar a imagem, porém, os pixels azuis, que valem 255, irão modificar a imagem.
                 comboImage = cv2.addWeighted(baseImage, 1, lineImage, 1, 1)       
