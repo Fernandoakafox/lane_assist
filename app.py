@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from enums.pointsForRegionOfInterest import PointsHB20
 
 #--------------------------Manipulação da imagem-------------------------------#
 def redimensionarImagem(img, largura_desejada):
@@ -40,11 +41,10 @@ def plotCannyGraphic(canny):
     plt.show()
 
 def regionOfInterest(image):
-    alturaDaImagem = image.shape[0] #o parametro 0 do metodo shape, retorna o numero de linhas.
-    verticeBaseEsquerda = (570,alturaDaImagem-200) #antes era 178
-    verticeBaseDireita = (1350,alturaDaImagem-200)
-    verticeTopoEsquerda = (770,750)
-    verticeTopoDireita = (1150,750)
+    verticeBaseEsquerda = PointsHB20.BASE_ESQUERDA.coordenadas()
+    verticeBaseDireita = PointsHB20.BASE_DIREITA.coordenadas()
+    verticeTopoEsquerda = PointsHB20.TOPO_ESQUERDA.coordenadas()
+    verticeTopoDireita = PointsHB20.TOPO_DIREITA.coordenadas()
 
     #definição dos vertices do trapezio. É uma lista porque fillPoly só aceita listas de poligonos.
     vertices = np.array([
@@ -118,10 +118,17 @@ def verificaMudancaDeFaixa(infoLines, averagedLines):
     return False
 
 def makeCoordinates(image, lineParameters):
+    """Cria uma reta com base em parametros recebidos.
+    
+    Argumentos:
+    - image (ndimensional array): A imagem original.
+    - lineParameters (list): lista contendo coeficiente angular e coeficiente linear
+    
+    """
     slope, intercept = lineParameters
-    #pegando a base da imagem
+    #definindo a coordenada y do ponto inicial da reta, com base na coordenada da base da imagem
     y1 = image.shape[0]
-    #pegando o "meio" da imagem
+    #definindo a coordenada y do ponto final da reta
     y2 = int(y1*(4/5))
     x1 = int((y1 - intercept)/slope)
     x2 = int((y2 - intercept)/slope)
