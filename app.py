@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from enums.pointsForRegionOfInterest import PointsHB20
+from enums.pointsForRegionOfInterest import PointsHB20, PointsVWSantana
 
 #--------------------------Manipulação da imagem-------------------------------#
 def redimensionarImagem(img, largura_desejada):
@@ -41,10 +41,10 @@ def plotCannyGraphic(canny):
     plt.show()
 
 def regionOfInterest(image):
-    verticeBaseEsquerda = PointsHB20.BASE_ESQUERDA.coordenadas()
-    verticeBaseDireita = PointsHB20.BASE_DIREITA.coordenadas()
-    verticeTopoEsquerda = PointsHB20.TOPO_ESQUERDA.coordenadas()
-    verticeTopoDireita = PointsHB20.TOPO_DIREITA.coordenadas()
+    verticeBaseEsquerda = PointsVWSantana.BASE_ESQUERDA.coordenadas()
+    verticeBaseDireita = PointsVWSantana.BASE_DIREITA.coordenadas()
+    verticeTopoEsquerda = PointsVWSantana.TOPO_ESQUERDA.coordenadas()
+    verticeTopoDireita = PointsVWSantana.TOPO_DIREITA.coordenadas()
 
     #definição dos vertices do trapezio. É uma lista porque fillPoly só aceita listas de poligonos.
     vertices = np.array([
@@ -206,7 +206,7 @@ def lineDashBoardColor(laneImage, infoLines):
         cv2.line(laneImage, pt1=(120,80), pt2=(120,160), color=(128,128,128), thickness=10)
 
 def main():
-    videoPath = "./videos/acessoGrasel.mp4"
+    videoPath = "./videos/noiteVWSantana.mp4"
     capture = cv2.VideoCapture(videoPath)
     linhaIdentificada = 0
     linhaNaoIdentificada = 0
@@ -217,6 +217,8 @@ def main():
         ret, image = capture.read()
         if ret is False:
             break
+
+        #getVideoCartezianDimension(image)
 
         baseImage = np.copy(image)
         cannyImage = canny(baseImage)
@@ -266,7 +268,7 @@ def main():
         cv2.imshow("Cropped RGB", redimensionarImagem(regionOfInterest(baseImage), 1200))
         cv2.imshow("comboImage", redimensionarImagem(comboImage, largura_janela))
         #cv2.imshow("croppedImage", redimensionar_imagem(croppedImage, largura_janela))
-        #cv2.imshow("grayImage", redimensionar_imagem(cv2.cvtColor(image, cv2.COLOR_RGB2GRAY), largura_janela))
+        cv2.imshow("grayImage", redimensionarImagem(cv2.Canny(cv2.cvtColor(image, cv2.COLOR_RGB2GRAY),100,150), largura_janela))
 
         #interrompe loop se a tecla esc for pressionada
         if cv2.waitKey(40) == 27:
