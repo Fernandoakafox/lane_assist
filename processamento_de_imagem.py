@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from enums.pointsForRegionOfInterest import PointsVWSantana
+from matplotlib import pyplot as plt
 
 class PreProcessadorDeImagem:
     @staticmethod
@@ -29,5 +30,18 @@ class PreProcessadorDeImagem:
         masked_frame = cv2.bitwise_and(frame, mask)
 
         return masked_frame
+    
+    @staticmethod
+    def image_recizer(image):
+        """Função para redimensionar uma imagem mantendo a proporção"""
+        proporcao = 720 / image.shape[1]
+        altura_desejada = int(image.shape[0] * proporcao)
+        return cv2.resize(image, (720, altura_desejada))
+    
+    @staticmethod
+    def getVideoCartezianDimension(imagem):
+        """Recebe um frame, no formato ndimensional array. Printa a imagem em um plano cartesiano"""
+        plt.imshow(imagem)
+        plt.show()
 
 
