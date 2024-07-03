@@ -1,11 +1,5 @@
 from enum import Enum ,auto
 
-
-class Estado(Enum):
-    NA_FAIXA = 1
-    FORA = 2
-    DESCONHECIDO = 3
-
 class MenuPrincipal(Enum):
     ESCOLHER_VIDEO = auto()
     UTILIZAR_CAMERA_EXTERNA = auto()
@@ -79,4 +73,3 @@ def main():
                 break
         except (ValueError, KeyError):
             print("Opção inválida. Por favor, escolha uma opção válida.")
-

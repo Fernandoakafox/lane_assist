@@ -1,6 +1,6 @@
-import processamento_de_imagem
+from lane_assist import LaneAssist
 
-videoPath = "./videos/noite.mp4"
+videoPath = "./videos/tardezinha.mp4"
 
-lane_assist = processamento_de_imagem.LaneAssist(videoPath)
-lane_assist.sentinel_mode()
+lane_assist = LaneAssist(videoPath)
+lane_assist.graphical_mode()
