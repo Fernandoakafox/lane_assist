@@ -5,6 +5,7 @@ from relatorio.cronometro import *
 from estado import Estado
 from dashboard import Dashboard
 from line_drawer import LineDrawer
+from time import time
 
 class LaneAssist:
     #construtor para arquivos vídeos (da para fazer uma sobrecarga para webcam)
@@ -16,6 +17,7 @@ class LaneAssist:
     def sentinel_mode(self):
         """Gera notificações caso o veículo esteja fora das faixas"""
         while(True):
+            start_time = time()
             # lê um frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
             ret, frame = self.capture.read()
             if ret is False:
@@ -33,8 +35,12 @@ class LaneAssist:
                 else:
                     Cronometro.tick(Estado.DESCONHECIDO)
 
+            end_time = time()
+            print(end_time - start_time)
+
     def graphical_mode(self):
         while(True):
+            start_time = time()
             # lê um frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
             ret, frame = self.capture.read()
             if ret is False:
@@ -78,9 +84,100 @@ class LaneAssist:
                 break
 
                 # Libera o vídeo e fecha as janelas
+            end_time = time()
+            print(end_time - start_time)
         self.capture.release()
         cv2.destroyAllWindows()
      
+    def debug_mode(self,base_image_output=True,cropped_base_image_output=True,base_image_filtered_output=True,cropped_filtered_image_output=True, combo_image_output=True):
+
+        
+        while(True):
+            start_time = time()
+            # lê o primeiro frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
+            ret, frame = self.capture.read()
+            if ret is False:
+                break     
+
+            #cropando a area de interesse sobre o frame original
+            cropped_base_image = PreProcessadorDeImagem.cropp_image(frame)
+            #aplicando filtros sobre o frame
+            frame_filtered = PreProcessadorDeImagem.aplicar_filtros(frame)
+            #cropando a area de interesse sobre frame filtrado
+            cropped_frame = PreProcessadorDeImagem.cropp_image(frame_filtered)
+            #detectando linhas
+            lines = cv2.HoughLinesP(cropped_frame, 2, np.pi/180, 100, np.array([]),minLineLength=40, 
+            maxLineGap = 5) #maxLineGap representa o espaço entre linhas que posso considerar como se fosse linha.
+
+            if lines is not None:
+                infoLines, averaged_lines = self.averageSlopeIntercept(frame, lines)
+
+                ret = self.verificaMudancaDeFaixa(infoLines, averaged_lines)
+                #se não houver faixas
+                if infoLines is "nothing":
+                    Cronometro.tick(Estado.DESCONHECIDO)
+                    Dashboard.show("Indefinido",frame)
+                #se houver faixas e estiver mudando de faixa
+                elif ret:
+                    Cronometro.tick(Estado.FORA)
+                    Dashboard.show("Mudanca de faixa",frame)
+                #se não houver faixas e estiver mudando de faixa    
+                elif not ret:
+                    Cronometro.tick(Estado.NA_FAIXA)
+                    Dashboard.show("Dentro das faixas",frame)
+            
+                #desenhando estado da identificação de linhas, no dashboard
+                Dashboard.lineDashBoardColor(frame, infoLines)
+                #desenhando linhas sobre a imagem original
+                combo_image = LineDrawer.draw_lines(averaged_lines, frame)
+        
+            #se linhas não foram identificadas
+            else:
+                cv2.putText(frame, "Indefinido", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,165,255), 2)
+                #pinta linhas no dashboard
+                Dashboard.lineDashBoardColor(frame, "")
+                combo_image = frame
+            
+            lista_de_imagens = []
+
+            if base_image_output == True:
+                lista_de_imagens.append(frame)
+            if base_image_filtered_output == True:
+                lista_de_imagens.append(frame_filtered)
+            if cropped_filtered_image_output == True:
+                lista_de_imagens.append(cropped_frame)
+            if combo_image_output == True:
+                lista_de_imagens.append(combo_image)
+            if cropped_base_image_output == True:
+                lista_de_imagens.append(cropped_base_image)
+
+            self.show_multiple_images(lista_de_imagens)
+
+            #interrompe loop se a tecla esc for pressionada
+            if cv2.waitKey(40) == 27:
+                break
+
+                # Libera o vídeo e fecha as janelas
+            end_time = time()
+            print(end_time - start_time)
+           
+        self.capture.release()
+        cv2.destroyAllWindows()
+
+#------------------------------manipulação da imagem-------------------------------
+    #TODO botar essa função na classe ProcesadorDeImagem (modificar o move window para ele se adaptar ao numero de janelas e ao tamanho do monitor do usuario, o tamanho das telas também pode ser proporcional ao numero de telas e ao monitor do usuario)
+    @staticmethod
+    def show_multiple_images(lista_de_imagens):
+        """Recebe uma lista de imagens, printa as imagens na tela."""
+        for i,image in enumerate(lista_de_imagens):
+            cv2.imshow(f"image {i}", PreProcessadorDeImagem.image_recizer(image))
+        cv2.moveWindow('image 0', 50, 50)  # Posição (50, 50)
+        cv2.moveWindow('image 1', 800, 50)  # Posição (400, 50)
+        cv2.moveWindow('image 2', 50, 700)  # Posição (50, 50)
+        cv2.moveWindow('image 3', 800, 700)  # Posição (400, 50)
+
+#----------------------------------------------------------------------------------
+
     @staticmethod
     def verificaMudancaDeFaixa(infoLines, averagedLines):
         if infoLines == "left and right":
@@ -114,7 +211,7 @@ class LaneAssist:
         #definindo a coordenada y do ponto inicial da reta, com base na coordenada da base da imagem
         y1 = image.shape[0]
         #definindo a coordenada y do ponto final da reta
-        y2 = int(y1*(4/5))
+        y2 = int(y1*(3/5))
         x1 = int((y1 - intercept)/slope)
         x2 = int((y2 - intercept)/slope)
         return np.array([x1,y1,x2,y2])
@@ -171,12 +268,6 @@ class LaneAssist:
         else:
             return ("nothing",np.array([]))
                 
-
-    def debug_mode():
-        pass
-
- 
-
     @staticmethod
     def line_detection(frame):
         """Detecta linhas em um frame"""
@@ -190,9 +281,3 @@ class LaneAssist:
 
         return lines
 
-
-    def line_drawer():
-        pass
-
-    def dashboard():
-        pass
