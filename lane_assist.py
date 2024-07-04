@@ -6,6 +6,8 @@ from estado import Estado
 from dashboard import Dashboard
 from line_drawer import LineDrawer
 from time import time
+from relatorio.relatorio import Relatorio
+from relatorio.exporter import CSVExporter
 
 class LaneAssist:
     #construtor para arquivos vídeos (da para fazer uma sobrecarga para webcam)
@@ -27,7 +29,7 @@ class LaneAssist:
             if lines is not None:
                 infoLines, averagedLines = self.averageSlopeIntercept(frame, lines)
 
-                if infoLines is not "nothing":
+                if infoLines != "nothing":
                     if self.verificaMudancaDeFaixa(infoLines, averagedLines):  
                         Cronometro.tick(Estado.FORA)
                     else:
@@ -52,7 +54,7 @@ class LaneAssist:
 
                 ret = self.verificaMudancaDeFaixa(infoLines, averaged_lines)
                 #se não houver faixas
-                if infoLines is "nothing":
+                if infoLines == "nothing":
                     Cronometro.tick(Estado.DESCONHECIDO)
                     Dashboard.show("Indefinido",frame)
                 #se houver faixas e estiver mudando de faixa
@@ -86,6 +88,9 @@ class LaneAssist:
                 # Libera o vídeo e fecha as janelas
             end_time = time()
             print(end_time - start_time)
+        relatorio = Relatorio(Cronometro.TIME_LINE, 30)
+        export = CSVExporter(relatorio)
+        export.export()
         self.capture.release()
         cv2.destroyAllWindows()
      
@@ -114,7 +119,7 @@ class LaneAssist:
 
                 ret = self.verificaMudancaDeFaixa(infoLines, averaged_lines)
                 #se não houver faixas
-                if infoLines is "nothing":
+                if infoLines == "nothing":
                     Cronometro.tick(Estado.DESCONHECIDO)
                     Dashboard.show("Indefinido",frame)
                 #se houver faixas e estiver mudando de faixa

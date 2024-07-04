@@ -1,4 +1,3 @@
-from estado import Estado
 
 class Cronometro:
     TIME_LINE = []
