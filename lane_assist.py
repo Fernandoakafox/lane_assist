@@ -12,12 +12,14 @@ from relatorio.exporter import CSVExporter
 class LaneAssist:
     #construtor para arquivos vídeos (da para fazer uma sobrecarga para webcam)
     def __init__(self,videoPath):
-        self.capture = cv2.VideoCapture(videoPath)                    #objeto para ler os frames do vídeo
-        self.heigh = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)) #altura do video
-        self.width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))  #largura do video
-
+        self.capture = cv2.VideoCapture(videoPath) #objeto para ler os frames do vídeo
+        
     def sentinel_mode(self):
         """Gera notificações caso o veículo esteja fora das faixas"""
+        if not self.capture.isOpened():
+            print("Erro ao abrir o arquivo de vídeo")
+            return
+
         while(True):
             start_time = time()
             # lê um frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
@@ -41,6 +43,10 @@ class LaneAssist:
             print(end_time - start_time)
 
     def graphical_mode(self):
+        if not self.capture.isOpened():
+            print("Erro ao abrir o arquivo de vídeo")
+            return
+
         while(True):
             start_time = time()
             # lê um frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
@@ -66,13 +72,12 @@ class LaneAssist:
                     Cronometro.tick(Estado.NA_FAIXA)
                     Dashboard.show("Dentro das faixas",frame)
             
-                #desenhando estado da identificação de linhas, no dashboard
+                #desenhando, no dashboard, o estado da identificação de linhas
                 Dashboard.lineDashBoardColor(frame, infoLines)
-                #desenhando linhas sobre a imagem original
+                #desenhando linhas sobre a imagem originalf
                 combo_image = LineDrawer.draw_lines(averaged_lines, frame)
         
-                #se linhas não foram identificadas
-
+            #se linhas não foram identificadas
             else:
                 cv2.putText(frame, "Indefinido", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,165,255), 2)
                 #pinta linhas no dashboard
@@ -94,15 +99,27 @@ class LaneAssist:
         self.capture.release()
         cv2.destroyAllWindows()
      
-    def debug_mode(self,base_image_output=True,cropped_base_image_output=True,base_image_filtered_output=True,cropped_filtered_image_output=True, combo_image_output=True):
+    def debug_mode(
+        self,
+        base_image_output=True,
+        cropped_base_image_output=True,
+        base_image_filtered_output=True,
+        cropped_filtered_image_output=True,
+        combo_image_all_lines_output=True,
+        combo_image_output=True
+    ):
 
-        
+        if not self.capture.isOpened():
+            print("Erro ao abrir o arquivo de vídeo")
+            return
+
         while(True):
             start_time = time()
-            # lê o primeiro frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
+            # lê um frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
             ret, frame = self.capture.read()
             if ret is False:
-                break     
+                print("Não foi possível ler o frame do vídeo ou fim do vídeo")
+                break
 
             #cropando a area de interesse sobre o frame original
             cropped_base_image = PreProcessadorDeImagem.cropp_image(frame)
@@ -131,12 +148,12 @@ class LaneAssist:
                     Cronometro.tick(Estado.NA_FAIXA)
                     Dashboard.show("Dentro das faixas",frame)
             
-                #desenhando estado da identificação de linhas, no dashboard
+                #desenhando, no dashboard, o estado da identificação de linhas
                 Dashboard.lineDashBoardColor(frame, infoLines)
                 #desenhando linhas sobre a imagem original
                 combo_image = LineDrawer.draw_lines(averaged_lines, frame)
         
-            #se linhas não foram identificadas
+            #se as linhas não foram identificadas
             else:
                 cv2.putText(frame, "Indefinido", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,165,255), 2)
                 #pinta linhas no dashboard
@@ -156,13 +173,13 @@ class LaneAssist:
             if cropped_base_image_output == True:
                 lista_de_imagens.append(cropped_base_image)
 
+            #mostra as imagens
             self.show_multiple_images(lista_de_imagens)
 
             #interrompe loop se a tecla esc for pressionada
             if cv2.waitKey(40) == 27:
                 break
 
-                # Libera o vídeo e fecha as janelas
             end_time = time()
             print(end_time - start_time)
            
@@ -180,6 +197,7 @@ class LaneAssist:
         cv2.moveWindow('image 1', 800, 50)  # Posição (400, 50)
         cv2.moveWindow('image 2', 50, 700)  # Posição (50, 50)
         cv2.moveWindow('image 3', 800, 700)  # Posição (400, 50)
+        cv2.moveWindow('image 4', 800, 700)  # Posição (400, 50)
 
 #----------------------------------------------------------------------------------
 
