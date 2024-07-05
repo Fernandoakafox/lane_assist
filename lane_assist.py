@@ -101,12 +101,12 @@ class LaneAssist:
      
     def debug_mode(
         self,
-        base_image_output=True,
-        cropped_base_image_output=True,
-        base_image_filtered_output=True,
-        cropped_filtered_image_output=True,
-        combo_image_all_lines_output=True,
-        combo_image_output=True
+        base_image_output=False,
+        cropped_base_image_output=False,
+        base_image_filtered_output=False,
+        cropped_filtered_image_output=False,
+        combo_image_all_lines_output=False,
+        combo_image_output=False
     ):
 
         if not self.capture.isOpened():
@@ -121,10 +121,11 @@ class LaneAssist:
                 print("Não foi possível ler o frame do vídeo ou fim do vídeo")
                 break
 
+            copy_frame = np.copy(frame)
             #cropando a area de interesse sobre o frame original
-            cropped_base_image = PreProcessadorDeImagem.cropp_image(frame)
+            cropped_base_image = PreProcessadorDeImagem.cropp_image(copy_frame)
             #aplicando filtros sobre o frame
-            frame_filtered = PreProcessadorDeImagem.aplicar_filtros(frame)
+            frame_filtered = PreProcessadorDeImagem.aplicar_filtros(copy_frame)
             #cropando a area de interesse sobre frame filtrado
             cropped_frame = PreProcessadorDeImagem.cropp_image(frame_filtered)
             #detectando linhas
@@ -132,34 +133,37 @@ class LaneAssist:
             maxLineGap = 5) #maxLineGap representa o espaço entre linhas que posso considerar como se fosse linha.
 
             if lines is not None:
-                infoLines, averaged_lines = self.averageSlopeIntercept(frame, lines)
+                infoLines, averaged_lines = self.averageSlopeIntercept(copy_frame, lines)
+
+                #VER ESSA LINHA ABAIXO
+                #if self.faixas_dentro_do_intervalo(infoLines,averaged_lines) == True:
 
                 ret = self.verificaMudancaDeFaixa(infoLines, averaged_lines)
                 #se não houver faixas
                 if infoLines == "nothing":
                     Cronometro.tick(Estado.DESCONHECIDO)
-                    Dashboard.show("Indefinido",frame)
+                    Dashboard.show("Indefinido",copy_frame)
                 #se houver faixas e estiver mudando de faixa
                 elif ret:
                     Cronometro.tick(Estado.FORA)
-                    Dashboard.show("Mudanca de faixa",frame)
+                    Dashboard.show("Mudanca de faixa",copy_frame)
                 #se não houver faixas e estiver mudando de faixa    
                 elif not ret:
                     Cronometro.tick(Estado.NA_FAIXA)
-                    Dashboard.show("Dentro das faixas",frame)
+                    Dashboard.show("Dentro das faixas",copy_frame)
             
                 #desenhando, no dashboard, o estado da identificação de linhas
-                Dashboard.lineDashBoardColor(frame, infoLines)
+                Dashboard.lineDashBoardColor(copy_frame, infoLines)
                 #desenhando linhas sobre a imagem original
-                combo_image = LineDrawer.draw_lines(averaged_lines, frame)
-                all_lines = LineDrawer.draw_all_lines(lines, frame)
+                combo_image = LineDrawer.draw_lines(averaged_lines, copy_frame)
+                all_lines = LineDrawer.draw_all_lines(lines, copy_frame)
         
             #se as linhas não foram identificadas
             else:
-                cv2.putText(frame, "Indefinido", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,165,255), 2)
+                cv2.putText(copy_frame, "Indefinido", (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,165,255), 2)
                 #pinta linhas no dashboard
-                Dashboard.lineDashBoardColor(frame, "")
-                combo_image = frame
+                Dashboard.lineDashBoardColor(copy_frame, "")
+                combo_image = copy_frame
             
             lista_de_imagens = []
 
@@ -189,6 +193,20 @@ class LaneAssist:
         self.capture.release()
         cv2.destroyAllWindows()
 
+    @staticmethod
+    def faixas_dentro_do_intervalo(infoLines,lines):
+        if infoLines == "left and right":
+            faixaEsquerda, faixaDireita = lines
+            
+            lx1,ly1,lx2,ly2= faixaEsquerda
+            print(lx1)
+            rx1,ry1,rx2,ry2 = faixaDireita
+            if rx1 - lx1 < 800 or rx2 - lx2 < 100:
+                return False
+            else:
+                return True
+        return False
+
 #------------------------------manipulação da imagem-------------------------------
     #TODO botar essa função na classe ProcesadorDeImagem (modificar o move window para ele se adaptar ao numero de janelas e ao tamanho do monitor do usuario, o tamanho das telas também pode ser proporcional ao numero de telas e ao monitor do usuario)
     @staticmethod
@@ -202,7 +220,7 @@ class LaneAssist:
         cv2.moveWindow('image 3', 800, 700)  # Posição (400, 50)
         cv2.moveWindow('image 4', 800, 700)  # Posição (400, 50)
 
-#----------------------------------------------------------------------------------
+#----------------m------------------------------------------------------------------
 
     @staticmethod
     def verificaMudancaDeFaixa(infoLines, averagedLines):
