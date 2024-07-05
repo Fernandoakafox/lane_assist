@@ -152,6 +152,7 @@ class LaneAssist:
                 Dashboard.lineDashBoardColor(frame, infoLines)
                 #desenhando linhas sobre a imagem original
                 combo_image = LineDrawer.draw_lines(averaged_lines, frame)
+                all_lines = LineDrawer.draw_all_lines(lines, frame)
         
             #se as linhas não foram identificadas
             else:
@@ -172,6 +173,8 @@ class LaneAssist:
                 lista_de_imagens.append(combo_image)
             if cropped_base_image_output == True:
                 lista_de_imagens.append(cropped_base_image)
+            if combo_image_all_lines_output == True:
+                lista_de_imagens.append(all_lines)
 
             #mostra as imagens
             self.show_multiple_images(lista_de_imagens)
@@ -181,7 +184,7 @@ class LaneAssist:
                 break
 
             end_time = time()
-            print(end_time - start_time)
+            #print(end_time - start_time)
            
         self.capture.release()
         cv2.destroyAllWindows()
@@ -204,19 +207,19 @@ class LaneAssist:
     @staticmethod
     def verificaMudancaDeFaixa(infoLines, averagedLines):
         if infoLines == "left and right":
-            faixaEsquerda, faixaDireita = averagedLines
+            faixaEsquerda, faixaDireita = averagedLines[0][0], averagedLines[1][0]
             x1Esquerda,_,_,_ = faixaEsquerda
             x1Direita,_,_,_ = faixaDireita
             if (x1Esquerda < 40 or x1Esquerda > 560) and (x1Direita < 1480 or x1Direita > 1920):
                 #print(f"X1 esquerda: {x1Esquerda} , X1 direita: {x1Direita}") #Debug
                 return True
         elif infoLines == "left":
-            x1Esquerda,_,_,_ = averagedLines[0]
+            x1Esquerda,_,_,_ = averagedLines[0][0]
             if x1Esquerda < 40 or x1Esquerda > 560:
                 #print(f"X1 esquerda: {x1Esquerda}") #Debug
                 return True
         elif infoLines == "right":
-            x1Direita,_,_,_ = averagedLines[0]
+            x1Direita,_,_,_ = averagedLines[0][0]
             if x1Direita < 1480 or x1Direita > 1920:
                 #print(f"X1 esquerda: {x1Direita}") #Debug
                 return True
@@ -259,12 +262,12 @@ class LaneAssist:
             if slope < -0.5:
                 #print("--------------------------")
                 #print(f"x1: {x1}, y1: {y1} x2: {x2} y2: {y2}")
-                #print("{:.2f}".format(slope))
+                #print("slope {:.2f}".format(slope))
                 leftFit.append((slope, intercept))
             elif slope > 0.5:
                 #print("--------------------------")
                 #print(f"x1: {x1}, y1: {y1} x2: {x2} y2: {y2}")
-                #print("{:.2f}".format(slope))
+                #print("slope {:.2f}".format(slope))
                 rightFit.append((slope, intercept))
 
 
@@ -283,13 +286,13 @@ class LaneAssist:
         
         #retorna as coordenadas das linhas, se elas existirem, do contrario, retorna coordenadas nulas.
         if leftLine is not None and rightLine is not None:
-            return ("left and right",np.array([leftLine, rightLine]))
+            return ("left and right",np.array([[leftLine], [rightLine]]))
         elif leftLine is not None:
-            return ("left", np.array([leftLine]))
+            return ("left", np.array([[leftLine]]))
         elif rightLine is not None:
-            return ("right", np.array([rightLine]))
+            return ("right", np.array([[rightLine]]))
         else:
-            return ("nothing",np.array([]))
+            return ("nothing",None)
                 
     @staticmethod
     def line_detection(frame):
