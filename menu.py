@@ -7,8 +7,6 @@ from pathlib import Path
 class OpcoesMenu(Enum):
     ESCOLHER_VIDEO = auto()
     INICIAR_COM_VIDEO = auto()
-    INICIAR_COM_CAMERA = auto()
-    INICIAR_CASOS_DE_TESTE = auto()
     SAIR = 0
 
 class FormatoExibicao(Enum):
