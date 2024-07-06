@@ -10,10 +10,14 @@ class PointsHB20(Enum):
         return self.value
 
 class PointsVWSantana(Enum):
-    BASE_ESQUERDA = (150,880)
-    BASE_DIREITA = (1800,880)
-    TOPO_ESQUERDA = (670,600)
-    TOPO_DIREITA = (1250,600)
+    BASE_ESQUERDA = (0,880)
+    BASE_DIREITA = (1920,880)
+    TOPO_ESQUERDA = (670,500)
+    TOPO_DIREITA = (1250,500)
+    LIMITE_MIN_X1_LEFT = (40)
+    LIMITE_MAX_X1_LEFT = (560)
+    LIMITE_MIN_X1_RIGHT = (1480)
+    LIMITE_MAX_X1_RIGHT = (1920)
 
     def coordenadas(self):
         return self.value
