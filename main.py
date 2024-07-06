@@ -1,6 +1,4 @@
-from lane_assist import LaneAssist
+from menu import Menu
 
-videoPath = "./videos/ultrapassagens.mp4"
-
-lane_assist = LaneAssist(videoPath)
-lane_assist.graphical_mode()
+menu = Menu()
+menu.start()
