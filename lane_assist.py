@@ -8,6 +8,7 @@ from line_drawer import LineDrawer
 from time import time
 from relatorio.relatorio import Relatorio
 from relatorio.exporter import CSVExporter
+import math
 
 class LaneAssist:
     #construtor para arquivos vídeos (da para fazer uma sobrecarga para webcam)
@@ -16,7 +17,7 @@ class LaneAssist:
         self.car_atributes = car_atributes
         
     def sentinel_mode(self):
-        """Gera notificações caso o veículo esteja fora das faixas"""
+        """Este método é responsavel por aplicar filtros, detectar linhas, gerar notificações e gerar um relatorio sobre a permanencia do veículo entre faixas."""
         if not self.capture.isOpened():
             print("Erro ao abrir o arquivo de vídeo")
             return
@@ -30,10 +31,10 @@ class LaneAssist:
 
             lines = self.line_detection(frame)
             if lines is not None:
-                infoLines, averagedLines = self.averageSlopeIntercept(frame, lines)
+                infoLines, averagedLines = self.average_slope_intercept(frame, lines)
 
                 if infoLines != "nothing":
-                    if self.verificaMudancaDeFaixa(infoLines, averagedLines):  
+                    if self.verifica_mudanca_deFaixa(infoLines, averagedLines):  
                         Cronometro.tick(Estado.FORA)
                     else:
                         Cronometro.tick(Estado.NA_FAIXA)
@@ -44,6 +45,7 @@ class LaneAssist:
             print(end_time - start_time)
 
     def graphical_mode(self):
+        """Este método é responsavel por aplicar filtros, detectar linhas e printar a imagem contendo um dashboard e as linhas identificadas na entrada de vídeo do objeto. Utilize este método para fins de debug."""
         if not self.capture.isOpened():
             print("Erro ao abrir o arquivo de vídeo")
             return
@@ -57,9 +59,9 @@ class LaneAssist:
 
             lines = self.line_detection(frame)
             if lines is not None:
-                infoLines, averaged_lines = self.averageSlopeIntercept(frame, lines)
+                infoLines, averaged_lines = self.average_slope_intercept(frame, lines)
 
-                ret = self.verificaMudancaDeFaixa(infoLines, averaged_lines)
+                ret = self.verifica_mudanca_deFaixa(infoLines, averaged_lines)
                 #se não houver faixas
                 if infoLines == "nothing":
                     Cronometro.tick(Estado.DESCONHECIDO)
@@ -107,13 +109,15 @@ class LaneAssist:
         base_image_filtered_output=False,
         cropped_filtered_image_output=False,
         combo_image_all_lines_output=False,
-        combo_image_output=False
+        combo_image_output=False,
     ):
+        """Este método é responsavel por aplicar filtros, detectar linhas e printar imagens de todas as transformações feitas na entrada de vídeo do objeto. Utilize este método para fins de debug."""
 
         if not self.capture.isOpened():
             print("Erro ao abrir o arquivo de vídeo")
             return
-
+        
+        flag = 0
         while(True):
             start_time = time()
             # lê um frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
@@ -134,12 +138,12 @@ class LaneAssist:
             maxLineGap = 5) #maxLineGap representa o espaço entre linhas que posso considerar como se fosse linha.
 
             if lines is not None:
-                infoLines, averaged_lines = self.averageSlopeIntercept(copy_frame, lines)
+                infoLines, averaged_lines = self.average_slope_intercept(copy_frame, lines, self.car_atributes)
 
                 #VER ESSA LINHA ABAIXO
                 #if self.faixas_dentro_do_intervalo(infoLines,averaged_lines) == True:
 
-                ret = self.verificaMudancaDeFaixa(infoLines, averaged_lines)
+                ret = self.verifica_mudanca_deFaixa(infoLines, averaged_lines)
                 #se não houver faixas
                 if infoLines == "nothing":
                     Cronometro.tick(Estado.DESCONHECIDO)
@@ -186,8 +190,8 @@ class LaneAssist:
                 print("Erro ou adicionar as imagens para a lista")
 
             #mostra as imagens
-            self.show_multiple_images(lista_de_imagens)
-
+            self.show_multiple_images(lista_de_imagens,flag)
+            flag = 1
             #interrompe loop se a tecla esc for pressionada
             if cv2.waitKey(40) == 27:
                 break
@@ -215,19 +219,21 @@ class LaneAssist:
 #------------------------------manipulação da imagem-------------------------------
     #TODO botar essa função na classe ProcesadorDeImagem (modificar o move window para ele se adaptar ao numero de janelas e ao tamanho do monitor do usuario, o tamanho das telas também pode ser proporcional ao numero de telas e ao monitor do usuario)
     @staticmethod
-    def show_multiple_images(lista_de_imagens):
+    def show_multiple_images(lista_de_imagens,flag):
         """Recebe uma lista de imagens, printa as imagens na tela."""
         for i,image in enumerate(lista_de_imagens):
             cv2.imshow(f"image {i}", PreProcessadorDeImagem.image_recizer(image))
-        cv2.moveWindow('image 0', 50, 50)  # Posição (50, 50)
-        cv2.moveWindow('image 1', 800, 50)  # Posição (400, 50)
-        cv2.moveWindow('image 2', 50, 700)  # Posição (50, 50)
-        cv2.moveWindow('image 3', 800, 700)  # Posição (400, 50)
-        cv2.moveWindow('image 4', 800, 700)  # Posição (400, 50)
+        if flag == 0:
+            cv2.moveWindow('image 0', 50, 50)  # Posição (50, 50)
+            cv2.moveWindow('image 1', 800, 50)  # Posição (400, 50)
+            cv2.moveWindow('image 2', 50, 700)  # Posição (50, 50)
+            cv2.moveWindow('image 3', 800, 700)  # Posição (400, 50)
+            cv2.moveWindow('image 4', 800, 700)  # Posição (400, 50)
 
 #----------------m------------------------------------------------------------------
 
-    def verificaMudancaDeFaixa(self, infoLines, averagedLines):
+    def verifica_mudanca_deFaixa(self, infoLines, averagedLines):
+        """Verifica se o veículo esta mudando de faixas"""
         atributes = self.car_atributes
 
         min_esquerda = atributes.limite_min_x1_esquerda
@@ -255,13 +261,16 @@ class LaneAssist:
                 return True
         return False
 
-    def makeCoordinates(self, image, lineParameters):
-        """Cria uma reta com base em parametros recebidos.
+    def make_coordinates(self, image, lineParameters):
+        """Recebe uma image, coeficiente linear e angular referente a uma reta, retorna as coordenadas de dois pontos para que seja desenhada uma reta com estes pontos. O tamanho desta reta leva em consideração as dimensoes da imagem recebida.
         
         Argumentos:
         - image (ndimensional array): A imagem original.
         - lineParameters (list): lista contendo coeficiente angular e coeficiente linear
         
+        Retorno:
+        - np.array: contendo coordenadas 
+
         """
         slope, intercept = lineParameters
         #definindo a coordenada y do ponto inicial da reta, com base na coordenada da base da imagem
@@ -272,7 +281,7 @@ class LaneAssist:
         x2 = int((y2 - intercept)/slope)
         return np.array([x1,y1,x2,y2])
 
-    def averageSlopeIntercept(self, image, lines):
+    def average_slope_intercept(self, image, lines, car_atributes):
         """Retorna uma tupla, onde o primeiro elemento é uma string e o segundo elemento é um np array
         
         A string contem a informação do np array, avisando se o np array retornado contém as duas faixas, somente a da esquerda, somente a da direita ou nenhuma.
@@ -284,21 +293,26 @@ class LaneAssist:
         rightFit = []
         for line in lines:
             x1,y1,x2,y2 = line.reshape(4)
+
             parameters = np.polyfit((x1,x2),(y1,y2), 1)
             slope = parameters[0]
             intercept = parameters[1]
-            # se o coeficiente angular da reta/linha for negativo, então é uma linha da esquerda (lembre-se que neste plano carteziano o eixo y tem seu valor minimo no extremo e seu valor maximo proximo a onde o eixo x tem valor 0)
+            catetos = pow((x2 - x1), 2) + pow((y2 - y1),2)
+            hipotenusa = math.sqrt(catetos)
 
-            if slope < -0.5:
-                #print("--------------------------")
-                #print(f"x1: {x1}, y1: {y1} x2: {x2} y2: {y2}")
-                #print("slope {:.2f}".format(slope))
-                leftFit.append((slope, intercept))
-            elif slope > 0.5:
-                #print("--------------------------")
-                #print(f"x1: {x1}, y1: {y1} x2: {x2} y2: {y2}")
-                #print("slope {:.2f}".format(slope))
-                rightFit.append((slope, intercept))
+            #se as retas forem maiores que 70 pixels
+            if abs(hipotenusa) > 100:
+                # se o coeficiente angular da reta/linha for negativo, então é uma linha da esquerda (lembre-se que neste plano carteziano o eixo y tem seu valor minimo no extremo e seu valor maximo proximo a onde o eixo x tem valor 0)
+                if slope < -0.5:
+                    #print("--------------------------")
+                    #print(f"x1: {x1}, y1: {y1} x2: {x2} y2: {y2}")
+                    #print("slope {:.2f}".format(slope))
+                    leftFit.append((slope, intercept))
+                elif slope > 0.5:
+                    #print("--------------------------")
+                    #print(f"x1: {x1}, y1: {y1} x2: {x2} y2: {y2}")
+                    #print("slope {:.2f}".format(slope))
+                    rightFit.append((slope, intercept))
 
 
         leftLine = None
@@ -307,25 +321,37 @@ class LaneAssist:
         #se existir coordenadas para a linha esquerda
         if leftFit:
             leftFitAverage = np.average(leftFit, axis = 0)
-            leftLine = self.makeCoordinates(image, leftFitAverage)
+            leftLine = self.make_coordinates(image, leftFitAverage)
 
         #se existir coordenadas para a linha direita
         if rightFit:
             rightFitAverage = np.average(rightFit, axis = 0)
-            rightLine = self.makeCoordinates(image, rightFitAverage)
-        
+            rightLine = self.make_coordinates(image, rightFitAverage)        
+              
         #retorna as coordenadas das linhas, se elas existirem, do contrario, retorna coordenadas nulas.
         if leftLine is not None and rightLine is not None:
-            return ("left and right",np.array([[leftLine], [rightLine]]))
+            #calculando um ponto medio na reta da direita
+            x1,_,x2,_ = rightLine
+            medium_point_right_line = ((x2 - x1) /2)
+            #calculando um ponto medio na reta da esquerda
+            x1,_,x2,_ = leftLine
+            medium_point_left_line = ((x2 - x1) /2)
+            
+            #se as retas tiverem um espaçamento minimo de pixels entre elas
+            if abs(medium_point_right_line - medium_point_left_line) > car_atributes.limite_min_entre_faixas:
+                print(medium_point_right_line - medium_point_left_line)                
+                return ("left and right",np.array([[leftLine], [rightLine]]))
+            else:
+                return ("nothing",None)
         elif leftLine is not None:
             return ("left", np.array([[leftLine]]))
         elif rightLine is not None:
             return ("right", np.array([[rightLine]]))
         else:
             return ("nothing",None)
-                
+
     def line_detection(self, frame):
-        """Detecta linhas em um frame"""
+        """Recebe um frame e retorna uma lista contendo as coordenadas das linhas deste frame"""
         #aplicando filtros sobre o frame
         frame_filtered = PreProcessadorDeImagem.aplicar_filtros(frame)
         #cropando a area de interesse do frame
@@ -333,6 +359,5 @@ class LaneAssist:
         #detectando linhas
         lines = cv2.HoughLinesP(cropped_frame, 2, np.pi/180, 100, np.array([]),minLineLength=40, 
         maxLineGap = 5) #maxLineGap representa o espaço entre linhas que posso considerar como se fosse linha.
-
-        return lines
+        return lines     
 
