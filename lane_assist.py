@@ -11,8 +11,9 @@ from relatorio.exporter import CSVExporter
 
 class LaneAssist:
     #construtor para arquivos vídeos (da para fazer uma sobrecarga para webcam)
-    def __init__(self,videoPath):
+    def __init__(self, videoPath, car_atributes):
         self.capture = cv2.VideoCapture(videoPath) #objeto para ler os frames do vídeo
+        self.car_atributes = car_atributes
         
     def sentinel_mode(self):
         """Gera notificações caso o veículo esteja fora das faixas"""
@@ -123,11 +124,11 @@ class LaneAssist:
 
             copy_frame = np.copy(frame)
             #cropando a area de interesse sobre o frame original
-            cropped_base_image = PreProcessadorDeImagem.cropp_image(copy_frame)
+            cropped_base_image = PreProcessadorDeImagem.cropp_image(copy_frame, self.car_atributes)
             #aplicando filtros sobre o frame
             frame_filtered = PreProcessadorDeImagem.aplicar_filtros(copy_frame)
             #cropando a area de interesse sobre frame filtrado
-            cropped_frame = PreProcessadorDeImagem.cropp_image(frame_filtered)
+            cropped_frame = PreProcessadorDeImagem.cropp_image(frame_filtered, self.car_atributes)
             #detectando linhas
             lines = cv2.HoughLinesP(cropped_frame, 2, np.pi/180, 100, np.array([]),minLineLength=40, 
             maxLineGap = 5) #maxLineGap representa o espaço entre linhas que posso considerar como se fosse linha.
@@ -167,18 +168,21 @@ class LaneAssist:
             
             lista_de_imagens = []
 
-            if base_image_output == True:
-                lista_de_imagens.append(frame)
-            if base_image_filtered_output == True:
-                lista_de_imagens.append(frame_filtered)
-            if cropped_filtered_image_output == True:
-                lista_de_imagens.append(cropped_frame)
-            if combo_image_output == True:
-                lista_de_imagens.append(combo_image)
-            if cropped_base_image_output == True:
-                lista_de_imagens.append(cropped_base_image)
-            if combo_image_all_lines_output == True:
-                lista_de_imagens.append(all_lines)
+            try:
+                if base_image_output == True:
+                    lista_de_imagens.append(frame)
+                if base_image_filtered_output == True:
+                    lista_de_imagens.append(frame_filtered)
+                if cropped_filtered_image_output == True:
+                    lista_de_imagens.append(cropped_frame)
+                if combo_image_output == True:
+                    lista_de_imagens.append(combo_image)
+                if cropped_base_image_output == True:
+                    lista_de_imagens.append(cropped_base_image)
+                if combo_image_all_lines_output == True:
+                    lista_de_imagens.append(all_lines)
+            except:
+                print("Erro ou adicionar as imagens para a lista")
 
             #mostra as imagens
             self.show_multiple_images(lista_de_imagens)
@@ -312,13 +316,12 @@ class LaneAssist:
         else:
             return ("nothing",None)
                 
-    @staticmethod
-    def line_detection(frame):
+    def line_detection(self, frame):
         """Detecta linhas em um frame"""
         #aplicando filtros sobre o frame
         frame_filtered = PreProcessadorDeImagem.aplicar_filtros(frame)
         #cropando a area de interesse do frame
-        cropped_frame = PreProcessadorDeImagem.cropp_image(frame_filtered)
+        cropped_frame = PreProcessadorDeImagem.cropp_image(frame_filtered, self.car_atributes)
         #detectando linhas
         lines = cv2.HoughLinesP(cropped_frame, 2, np.pi/180, 100, np.array([]),minLineLength=40, 
         maxLineGap = 5) #maxLineGap representa o espaço entre linhas que posso considerar como se fosse linha.

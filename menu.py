@@ -3,10 +3,13 @@ from lane_assist import LaneAssist
 from menu_parent import MenuParent
 import os
 from pathlib import Path
+from enums.car_atributes import CarAtributes
+from enums.car_atributes import Presets
 
 class OpcoesMenu(Enum):
     ESCOLHER_VIDEO = auto()
     INICIAR_COM_VIDEO = auto()
+    ESCOLHER_AJUSTES_DE_CAMERA = auto()
     SAIR = 0
 
 class FormatoExibicao(Enum):
@@ -24,6 +27,7 @@ class Menu(MenuParent):
     def __init__(self):
         super().__init__()
         self.video_path = "videos/ultrapassagens.mp4"
+        self.car_atributes = CarAtributes(Presets.VW_SANTANA)
 
     # ============================== .:| Opções de menu para rodar |:. ==============================
     def iniciar_com_video(self):
@@ -31,37 +35,34 @@ class Menu(MenuParent):
         print("Escolher Vídeo:")
         self.mostrar_menu_formato_exibicao()
 
-    def iniciar_com_camera_externa(self):
+    def escolher_ajustes_camera(self):
         self.apagar_terminal()
-        print("Você escolheu utilizar a câmera externa.")
+        print("Escolha o ajuste de câmera:")
+        self.ajustar_camera()
 
-    def iniciar_casos_de_teste(self):
+    def sair(self):
         self.apagar_terminal()
-        print("Você escolheu iniciar casos de teste.")
+        print("Saindo...")
 
 
     # ============================ .:| Opções de formato de exibição |:. ============================
     def ver_comboimage(self):
         self.apagar_terminal()
         print("Visualizando comboImage.")
-        LaneAssist(self.video_path).debug_mode(combo_image_output = True)
+        LaneAssist(self.video_path, self.car_atributes).debug_mode(combo_image_output = True)
 
     def ver_multiplas_imagens(self):
         self.apagar_terminal()
         print("Visualizando multiplas imagens.")
-        LaneAssist(self.video_path).debug_mode(False, True, True, True, True)
+        LaneAssist(self.video_path, self.car_atributes).debug_mode(False, True, True, True, True)
 
     def somente_alertas(self):
         self.apagar_terminal()
         print("Exibindo apenas alertas, sem imagens.")
-        LaneAssist(self.video_path).sentinel_mode()
+        LaneAssist(self.video_path, self.car_atributes).sentinel_mode()
 
 
-    # =================================== .:| opções default |:. ======================================
-    def sair(self):
-        self.apagar_terminal()
-        print("Saindo...")
-
+    # =================================== .:| Opções auxliares de escolha |:. ======================================
 
     # Função resposnsável por printar os vídeo disponíveis na pasta [videos]
     def mostrar_opcoes_video(self):
@@ -112,6 +113,7 @@ class Menu(MenuParent):
             else:
                 self.opcao_invalida()
     
+
     # === Menu Formato de Exibição ==
     # Essa função é responsável por manter o usuário interagindo (escolhendo as opções)
     # até este degitar uma entrada válida
@@ -152,11 +154,47 @@ class Menu(MenuParent):
                 self.opcao_invalida()
 
 
+    # Essa função é responsável por interagir com o usuário para que ele escolha
+    # a configuração de câmre mais adequada para o cenário desejado
+    def ajustar_camera(self):
+        
+        while (True):
+            self.apagar_terminal()
+            print("\nEscolha o ajuste de câmera:")
+
+            # Presets é um Enum presente em car_atributes
+            # ele representa os ajustes pre-configurados já existentes
+            for opcao in Presets:
+                print(f"[{opcao.value}] {opcao.name.replace('_', ' ').capitalize()}")
+            
+            # Dessa vez, vamos adicionar uma opção de voltar diretamente no código
+            # ser estar presente no Enum diretamente, pois o Enum serve para outras finalidades
+            print("[0] Voltar")
+            escolha = input("\nEscolha uma opção: ")
+
+            # validar se o usuário não está tentando voltar
+            if (escolha == 0):
+                break
+
+            try:
+                # Fazendo essa convesão, conseguimos validar se a escolha do usuário
+                # está dentro das opçãos disponíveis
+                preset = Presets(int(escolha))
+
+                # Atribuímos a escolha do usuário ao atributo da classe
+                self.car_atributes = CarAtributes(preset)
+                break
+                    
+            except ValueError:
+                self.opcao_invalida()
+
+
     # === Menu principal ===
     # Essa função é responsável por listar o menu principal
     def mostrar_menu_principal(self):
         self.apagar_terminal()
         print(f"Vídeo atual: [ {self.video_path} ]")
+        print(f"A camera está ajustada para: [ {self.car_atributes.name} ]")
         print("\n=== .:| Menu Principal |:. ===")
 
         # vamos iterar por cada opção presente no Nosso Enum OpcoesMenu
@@ -183,12 +221,8 @@ class Menu(MenuParent):
                         self.mostrar_menu_formato_exibicao()
                         continue
 
-                    case OpcoesMenu.INICIAR_COM_CAMERA:
-                        self.iniciar_com_camera_externa()
-                        continue
-
-                    case OpcoesMenu.INICIAR_CASOS_DE_TESTE:
-                        self.iniciar_casos_de_teste()
+                    case OpcoesMenu.ESCOLHER_AJUSTES_DE_CAMERA:
+                        self.escolher_ajustes_camera()
                         continue
 
                     case OpcoesMenu.SAIR:

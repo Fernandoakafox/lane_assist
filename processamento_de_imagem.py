@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from enums.pointsForRegionOfInterest import PointsVWSantana
+from enums.car_atributes import PointsVWSantana
 from matplotlib import pyplot as plt
 
 class PreProcessadorDeImagem:
@@ -12,12 +12,12 @@ class PreProcessadorDeImagem:
             return cannyImage
     
     @staticmethod
-    def cropp_image(frame):
+    def cropp_image(frame, car_atributes):
         """Faz a cropagem da area de interece do frame, com base em pontos predeterminados"""
-        verticeBaseEsquerda = PointsVWSantana.BASE_ESQUERDA.coordenadas()
-        verticeBaseDireita = PointsVWSantana.BASE_DIREITA.coordenadas()
-        verticeTopoEsquerda = PointsVWSantana.TOPO_ESQUERDA.coordenadas()
-        verticeTopoDireita = PointsVWSantana.TOPO_DIREITA.coordenadas()
+        verticeBaseEsquerda = car_atributes.base_esquerda
+        verticeBaseDireita = car_atributes.base_direita
+        verticeTopoEsquerda = car_atributes.topo_esquerda
+        verticeTopoDireita = car_atributes.topo_direita
         #definição dos vertices do trapezio. É uma lista porque fillPoly só aceita listas de poligonos.
         vertices = np.array([
         [verticeBaseEsquerda , verticeBaseDireita , verticeTopoDireita ,verticeTopoEsquerda ]
