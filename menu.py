@@ -165,7 +165,7 @@ class Menu(MenuParent):
             # Presets é um Enum presente em car_atributes
             # ele representa os ajustes pre-configurados já existentes
             for opcao in Presets:
-                print(f"[{opcao.value}] {opcao.name.replace('_', ' ').capitalize()}")
+                print(f"[{opcao.value}] {opcao.name.replace('_', ' ')}")
             
             # Dessa vez, vamos adicionar uma opção de voltar diretamente no código
             # ser estar presente no Enum diretamente, pois o Enum serve para outras finalidades
