@@ -7,8 +7,8 @@ from enums.car_atributes import CarAtributes
 from enums.car_atributes import Presets
 
 class OpcoesMenu(Enum):
+    INICIAR = auto()
     ESCOLHER_VIDEO = auto()
-    INICIAR_COM_VIDEO = auto()
     ESCOLHER_AJUSTES_DE_CAMERA = auto()
     SAIR = 0
 
@@ -170,7 +170,7 @@ class Menu(MenuParent):
             # Dessa vez, vamos adicionar uma opção de voltar diretamente no código
             # ser estar presente no Enum diretamente, pois o Enum serve para outras finalidades
             print("[0] Voltar")
-            escolha = input("\nEscolha uma opção: ")
+            escolha = int(input("\nEscolha uma opção: "))
 
             # validar se o usuário não está tentando voltar
             if (escolha == 0):
@@ -179,7 +179,7 @@ class Menu(MenuParent):
             try:
                 # Fazendo essa convesão, conseguimos validar se a escolha do usuário
                 # está dentro das opçãos disponíveis
-                preset = Presets(int(escolha))
+                preset = Presets(escolha)
 
                 # Atribuímos a escolha do usuário ao atributo da classe
                 self.car_atributes = CarAtributes(preset)
@@ -217,7 +217,7 @@ class Menu(MenuParent):
                         self._mostrar_opcoes_video()
                         continue
 
-                    case OpcoesMenu.INICIAR_COM_VIDEO:
+                    case OpcoesMenu.INICIAR:
                         self._mostrar_menu_formato_exibicao()
                         continue
 
