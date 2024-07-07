@@ -1,10 +1,9 @@
-from enum import Enum ,auto
-
+from enum import Enum
 
 class Presets(Enum):
     HB20 = 1
     VW_SANTANA = 2
-
+    INDIAN_CAR = 3
     
 class CarAtributes():
 
@@ -57,32 +56,13 @@ class CarAtributes():
                 self.limite_min_x1_direita = (1480)
                 self.limite_max_x1_direita = (1920)
 
-            # TODO fazer os atributos dos indianCar
+            case Presets.INDIAN_CAR:
+                self.base_esquerda = (250,1080)
+                self.base_direita = (1920,1080)
+                self.topo_esquerda = (750,500)
+                self.topo_direita = (1000,500)
 
-
-    def coordenadas(self):
-        return self.value
-
-
-# TODO remover o código abaixo quando não for mais necessário
-class PointsHB20(Enum):
-    BASE_ESQUERDA = (570,880)
-    BASE_DIREITA = (1350,880)
-    TOPO_ESQUERDA = (770,750)
-    TOPO_DIREITA = (1150,750)
-
-    def coordenadas(self):
-        return self.value
-
-class PointsVWSantana(Enum):
-    BASE_ESQUERDA = (0,880)
-    BASE_DIREITA = (1920,880)
-    TOPO_ESQUERDA = (670,500)
-    TOPO_DIREITA = (1250,500)
-    LIMITE_MIN_X1_LEFT = (40)
-    LIMITE_MAX_X1_LEFT = (560)
-    LIMITE_MIN_X1_RIGHT = (1480)
-    LIMITE_MAX_X1_RIGHT = (1920)
-
-    def coordenadas(self):
-        return self.value
+                self.limite_min_x1_esquerda = (40)
+                self.limite_max_x1_esquerda = (560)
+                self.limite_min_x1_direita = (1480)
+                self.limite_max_x1_direita = (1920)

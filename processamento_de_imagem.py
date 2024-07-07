@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from enums.car_atributes import PointsVWSantana
 from matplotlib import pyplot as plt
 
 class PreProcessadorDeImagem:

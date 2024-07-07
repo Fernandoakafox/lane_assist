@@ -30,33 +30,33 @@ class Menu(MenuParent):
         self.car_atributes = CarAtributes(Presets.VW_SANTANA)
 
     # ============================== .:| Opções de menu para rodar |:. ==============================
-    def iniciar_com_video(self):
+    def _iniciar_com_video(self):
         self.apagar_terminal()
         print("Escolher Vídeo:")
-        self.mostrar_menu_formato_exibicao()
+        self._mostrar_menu_formato_exibicao()
 
-    def escolher_ajustes_camera(self):
+    def _escolher_ajustes_camera(self):
         self.apagar_terminal()
         print("Escolha o ajuste de câmera:")
-        self.ajustar_camera()
+        self._ajustar_camera()
 
-    def sair(self):
+    def _sair(self):
         self.apagar_terminal()
         print("Saindo...")
 
 
     # ============================ .:| Opções de formato de exibição |:. ============================
-    def ver_comboimage(self):
+    def _ver_comboimage(self):
         self.apagar_terminal()
         print("Visualizando comboImage.")
-        LaneAssist(self.video_path, self.car_atributes).debug_mode(combo_image_output = True)
+        LaneAssist(self.video_path, self.car_atributes).graphical_mode()
 
-    def ver_multiplas_imagens(self):
+    def _ver_multiplas_imagens(self):
         self.apagar_terminal()
         print("Visualizando multiplas imagens.")
-        LaneAssist(self.video_path, self.car_atributes).debug_mode(False, True, True, True, True)
+        LaneAssist(self.video_path, self.car_atributes).debug_mode(False, True, True, True, True, True)
 
-    def somente_alertas(self):
+    def _somente_alertas(self):
         self.apagar_terminal()
         print("Exibindo apenas alertas, sem imagens.")
         LaneAssist(self.video_path, self.car_atributes).sentinel_mode()
@@ -65,7 +65,7 @@ class Menu(MenuParent):
     # =================================== .:| Opções auxliares de escolha |:. ======================================
 
     # Função resposnsável por printar os vídeo disponíveis na pasta [videos]
-    def mostrar_opcoes_video(self):
+    def _mostrar_opcoes_video(self):
         # guardando os vídeos disponíveis
         lista_videos = os.listdir(self.DIRETORIO_VIDEOS)
 
@@ -117,7 +117,7 @@ class Menu(MenuParent):
     # === Menu Formato de Exibição ==
     # Essa função é responsável por manter o usuário interagindo (escolhendo as opções)
     # até este degitar uma entrada válida
-    def mostrar_menu_formato_exibicao(self):
+    def _mostrar_menu_formato_exibicao(self):
         
         while (True):
             self.apagar_terminal()
@@ -136,15 +136,15 @@ class Menu(MenuParent):
                 match (FormatoExibicao(int(escolha))):
                     
                     case FormatoExibicao.VER_COMBOIMAGE:
-                        self.ver_comboimage()
+                        self._ver_comboimage()
                         break
 
                     case FormatoExibicao.VER_MULTIPLAS_IMAGENS:
-                        self.ver_multiplas_imagens()
+                        self._ver_multiplas_imagens()
                         break
 
                     case FormatoExibicao.SOMENTE_ALERTAS:
-                        self.somente_alertas()
+                        self._somente_alertas()
                         break
 
                     case FormatoExibicao.VOLTAR:
@@ -156,7 +156,7 @@ class Menu(MenuParent):
 
     # Essa função é responsável por interagir com o usuário para que ele escolha
     # a configuração de câmre mais adequada para o cenário desejado
-    def ajustar_camera(self):
+    def _ajustar_camera(self):
         
         while (True):
             self.apagar_terminal()
@@ -191,7 +191,7 @@ class Menu(MenuParent):
 
     # === Menu principal ===
     # Essa função é responsável por listar o menu principal
-    def mostrar_menu_principal(self):
+    def _mostrar_menu_principal(self):
         self.apagar_terminal()
         print(f"Vídeo atual: [ {self.video_path} ]")
         print(f"A camera está ajustada para: [ {self.car_atributes.name} ]")
@@ -208,21 +208,21 @@ class Menu(MenuParent):
     # Função inicial, ela é resposável por iniciar o loop de interação com o usuário
     def start(self):
         while True:
-            opcao = self.mostrar_menu_principal()
+            opcao = self._mostrar_menu_principal()
 
             try:
                 match OpcoesMenu(int(opcao)):
 
                     case OpcoesMenu.ESCOLHER_VIDEO:
-                        self.mostrar_opcoes_video()
+                        self._mostrar_opcoes_video()
                         continue
 
                     case OpcoesMenu.INICIAR_COM_VIDEO:
-                        self.mostrar_menu_formato_exibicao()
+                        self._mostrar_menu_formato_exibicao()
                         continue
 
                     case OpcoesMenu.ESCOLHER_AJUSTES_DE_CAMERA:
-                        self.escolher_ajustes_camera()
+                        self._escolher_ajustes_camera()
                         continue
 
                     case OpcoesMenu.SAIR:

@@ -94,7 +94,7 @@ class LaneAssist:
                 # Libera o vídeo e fecha as janelas
             end_time = time()
             print(end_time - start_time)
-        relatorio = Relatorio(Cronometro.TIME_LINE, 30)
+        relatorio = Relatorio(Cronometro.TIME_LINE, 15)
         export = CSVExporter(relatorio)
         export.export()
         self.capture.release()
@@ -165,6 +165,7 @@ class LaneAssist:
                 #pinta linhas no dashboard
                 Dashboard.lineDashBoardColor(copy_frame, "")
                 combo_image = copy_frame
+                all_lines = copy_frame
             
             lista_de_imagens = []
 
@@ -226,23 +227,30 @@ class LaneAssist:
 
 #----------------m------------------------------------------------------------------
 
-    @staticmethod
-    def verificaMudancaDeFaixa(infoLines, averagedLines):
+    def verificaMudancaDeFaixa(self, infoLines, averagedLines):
+        atributes = self.car_atributes
+
+        min_esquerda = atributes.limite_min_x1_esquerda
+        max_esquerda = atributes.limite_max_x1_esquerda
+
+        min_direita = atributes.limite_min_x1_direita
+        max_direita = atributes.limite_max_x1_direita
+        
         if infoLines == "left and right":
             faixaEsquerda, faixaDireita = averagedLines[0][0], averagedLines[1][0]
             x1Esquerda,_,_,_ = faixaEsquerda
             x1Direita,_,_,_ = faixaDireita
-            if (x1Esquerda < 40 or x1Esquerda > 560) and (x1Direita < 1480 or x1Direita > 1920):
+            if (x1Esquerda < min_esquerda or x1Esquerda > max_esquerda) and (x1Direita < min_direita or x1Direita > max_direita):
                 #print(f"X1 esquerda: {x1Esquerda} , X1 direita: {x1Direita}") #Debug
                 return True
         elif infoLines == "left":
             x1Esquerda,_,_,_ = averagedLines[0][0]
-            if x1Esquerda < 40 or x1Esquerda > 560:
+            if x1Esquerda < min_esquerda or x1Esquerda > max_esquerda:
                 #print(f"X1 esquerda: {x1Esquerda}") #Debug
                 return True
         elif infoLines == "right":
             x1Direita,_,_,_ = averagedLines[0][0]
-            if x1Direita < 1480 or x1Direita > 1920:
+            if x1Direita < min_direita or x1Direita > max_direita:
                 #print(f"X1 esquerda: {x1Direita}") #Debug
                 return True
         return False
