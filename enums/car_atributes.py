@@ -13,16 +13,18 @@ class CarAtributes():
         self.name = type.name
 
         # janela de interrese do LaneAssist
-        self.base_esquerda = (0, 0)
-        self.base_direita = (0, 0)
-        self.topo_direita = (0, 0)
-        self.topo_esquerda = (0, 0)
+        self.base_esquerda = (0,880)
+        self.base_direita = (1920,880)
+        self.topo_esquerda = (600,500)
+        self.topo_direita = (1250,500)
 
         # Limites do TODO finalizar descrição
-        self.limite_min_x1_esquerda = (0)
-        self.limite_max_x1_esquerda = (0)
-        self.limite_min_x1_direita = (0)
-        self.limite_max_x1_direita = (0)
+        self.limite_min_x1_esquerda = (40)
+        self.limite_max_x1_esquerda = (560)
+        self.limite_min_x1_direita = (1103)
+        self.limite_max_x1_direita = (1920)
+
+        self.limite_min_entre_faixas = (600)
 
         self._initialize_atributes(type)
 
@@ -45,19 +47,23 @@ class CarAtributes():
                 self.limite_min_x1_direita = (1480)
                 self.limite_max_x1_direita = (1920)
 
+                self.limite_min_entre_faixas = (0)
+
             case Presets.VW_SANTANA:
                 self.base_esquerda = (0,880)
                 self.base_direita = (1920,880)
-                self.topo_esquerda = (670,500)
+                self.topo_esquerda = (600,500)
                 self.topo_direita = (1250,500)
 
                 self.limite_min_x1_esquerda = (40)
                 self.limite_max_x1_esquerda = (560)
-                self.limite_min_x1_direita = (1480)
+                self.limite_min_x1_direita = (1103)
                 self.limite_max_x1_direita = (1920)
 
+                self.limite_min_entre_faixas = (600)
+
             case Presets.INDIAN_CAR:
-                self.base_esquerda = (250,1080)
+                self.base_esquerda = (200,1080)
                 self.base_direita = (1920,1080)
                 self.topo_esquerda = (750,500)
                 self.topo_direita = (1000,500)
@@ -66,3 +72,5 @@ class CarAtributes():
                 self.limite_max_x1_esquerda = (560)
                 self.limite_min_x1_direita = (1480)
                 self.limite_max_x1_direita = (1920)
+
+                self.limite_min_entre_faixas = (0)
