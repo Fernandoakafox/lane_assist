@@ -1,7 +1,9 @@
 import cv2
 from cores_bgr import CoresBGR
 
-class Dashboard:  
+class Dashboard: 
+
+    @staticmethod 
     def show(mensagem,frame):
         cor = CoresBGR.BRANCO
         match(mensagem):
@@ -16,6 +18,7 @@ class Dashboard:
   
         cv2.putText(frame, mensagem, (50,50), cv2.FONT_HERSHEY_COMPLEX, 1, cor, 2)
 
+    @staticmethod
     def lineDashBoardColor(frame, info_lines):
         match(info_lines):
             case "left and right":

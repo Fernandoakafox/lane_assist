@@ -55,7 +55,7 @@ class LineDrawer:
                     x1,y1,x2,y2 = line[0]
                     catetos = pow((x2 - x1), 2) + pow((y2 - y1),2)
                     hipotenusa = math.sqrt(catetos)
-                    #se as retas forem maiores que 70 pixels
+                    #se as retas forem maiores que 100 pixels
                     if abs(hipotenusa) > 100:
                         parameters = np.polyfit((x1,x2),(y1,y2), 1)
                         slope = parameters[0]
