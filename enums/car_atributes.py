@@ -20,8 +20,8 @@ class CarAtributes():
 
         # Limites do TODO finalizar descrição
         self.limite_min_x1_esquerda = (40)
-        self.limite_max_x1_esquerda = (560)
-        self.limite_min_x1_direita = (1103)
+        self.limite_max_x1_esquerda = (780)
+        self.limite_min_x1_direita = (994)
         self.limite_max_x1_direita = (1920)
 
         self.limite_min_entre_faixas = (600)
@@ -56,8 +56,8 @@ class CarAtributes():
                 self.topo_direita = (1250,500)
 
                 self.limite_min_x1_esquerda = (40)
-                self.limite_max_x1_esquerda = (560)
-                self.limite_min_x1_direita = (1103)
+                self.limite_max_x1_esquerda = (780)
+                self.limite_min_x1_direita = (994)
                 self.limite_max_x1_direita = (1920)
 
                 self.limite_min_entre_faixas = (600)
