@@ -231,17 +231,17 @@ class LaneAssist:
             faixaEsquerda, faixaDireita = averagedLines[0][0], averagedLines[1][0]
             x1Esquerda,_,_,_ = faixaEsquerda
             x1Direita,_,_,_ = faixaDireita
-            if (x1Esquerda < min_esquerda or x1Esquerda > max_esquerda) and (x1Direita < min_direita or x1Direita > max_direita):
+            if x1Esquerda > max_esquerda or x1Direita < min_direita:
                 #print(f"X1 esquerda: {x1Esquerda} , X1 direita: {x1Direita}") #Debug
                 return True
         elif infoLines == "left":
             x1Esquerda,_,_,_ = averagedLines[0][0]
-            if x1Esquerda < min_esquerda or x1Esquerda > max_esquerda:
+            if x1Esquerda > max_esquerda:
                 #print(f"X1 esquerda: {x1Esquerda}") #Debug
                 return True
         elif infoLines == "right":
             x1Direita,_,_,_ = averagedLines[0][0]
-            if x1Direita < min_direita or x1Direita > max_direita:
+            if x1Direita < min_direita:
                 #print(f"X1 esquerda: {x1Direita}") #Debug
                 return True
         return False
