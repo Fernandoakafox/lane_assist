@@ -117,7 +117,7 @@ class LaneAssist:
             print("Erro ao abrir o arquivo de vídeo")
             return
         
-        flag = 0
+        isFirstLoop = 0
         while(True):
             start_time = time()
             # lê um frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
@@ -190,8 +190,8 @@ class LaneAssist:
                 print("Erro ou adicionar as imagens para a lista")
 
             #mostra as imagens
-            self.show_multiple_images(lista_de_imagens,flag)
-            flag = 1
+            self.show_multiple_images(lista_de_imagens,isFirstLoop)
+            isFirstLoop = 1
             #interrompe loop se a tecla esc for pressionada
             if cv2.waitKey(40) == 27:
                 break
@@ -202,28 +202,15 @@ class LaneAssist:
         self.capture.release()
         cv2.destroyAllWindows()
 
-    @staticmethod
-    def faixas_dentro_do_intervalo(infoLines,lines):
-        if infoLines == "left and right":
-            faixaEsquerda, faixaDireita = lines
-            
-            lx1,ly1,lx2,ly2= faixaEsquerda
-            print(lx1)
-            rx1,ry1,rx2,ry2 = faixaDireita
-            if rx1 - lx1 < 800 or rx2 - lx2 < 100:
-                return False
-            else:
-                return True
-        return False
 
 #------------------------------manipulação da imagem-------------------------------
     #TODO botar essa função na classe ProcesadorDeImagem (modificar o move window para ele se adaptar ao numero de janelas e ao tamanho do monitor do usuario, o tamanho das telas também pode ser proporcional ao numero de telas e ao monitor do usuario)
     @staticmethod
-    def show_multiple_images(lista_de_imagens,flag):
+    def show_multiple_images(lista_de_imagens,isFirstLoop):
         """Recebe uma lista de imagens, printa as imagens na tela."""
         for i,image in enumerate(lista_de_imagens):
             cv2.imshow(f"image {i}", PreProcessadorDeImagem.image_recizer(image))
-        if flag == 0:
+        if isFirstLoop == 0:
             cv2.moveWindow('image 0', 50, 50)  # Posição (50, 50)
             cv2.moveWindow('image 1', 800, 50)  # Posição (400, 50)
             cv2.moveWindow('image 2', 50, 700)  # Posição (50, 50)
