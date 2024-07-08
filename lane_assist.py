@@ -117,7 +117,7 @@ class LaneAssist:
             print("Erro ao abrir o arquivo de vídeo")
             return
         
-        isFirstLoop = 0
+        isFirstLoop = True
         while(True):
             start_time = time()
             # lê um frame do video. Retorna True se a leitura foi bem sucedida e retorna também o frame
@@ -191,7 +191,8 @@ class LaneAssist:
 
             #mostra as imagens
             self.show_multiple_images(lista_de_imagens,isFirstLoop)
-            isFirstLoop = 1
+            isFirstLoop = False
+
             #interrompe loop se a tecla esc for pressionada
             if cv2.waitKey(40) == 27:
                 break
@@ -210,7 +211,7 @@ class LaneAssist:
         """Recebe uma lista de imagens, printa as imagens na tela."""
         for i,image in enumerate(lista_de_imagens):
             cv2.imshow(f"image {i}", PreProcessadorDeImagem.image_recizer(image))
-        if isFirstLoop == 0:
+        if isFirstLoop == True:
             cv2.moveWindow('image 0', 50, 50)  # Posição (50, 50)
             cv2.moveWindow('image 1', 800, 50)  # Posição (400, 50)
             cv2.moveWindow('image 2', 50, 700)  # Posição (50, 50)
